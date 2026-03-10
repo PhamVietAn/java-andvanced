@@ -15,7 +15,7 @@ public class Main {
         // Function dựng sẵn: Consumer, Predicate, Function, Supplier
 
         // Lambda expression: là cú pháp viết gọn của 1 method dùng để viết nhanh trong lớp interface
-        IFunctional lb = (a,b) -> 1;
+//        IFunctional lb = (a,b) -> 1;
 
         Comparator<Cat> com1 = (c1,c2) -> -1;
         Collections.sort(new ArrayList<>(), (c1,c2) -> 1);

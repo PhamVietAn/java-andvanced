@@ -5,7 +5,7 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         MyCheckException exception = new MyCheckException("không có người yêu");
-        MyUncheckException uncheckedException = new MyUncheckException("thức khuya");
+        MyUncheckedException uncheckedException = new MyUncheckedException("thức khuya");
     }
     public static int InputInterger() {
         Scanner sc = new Scanner(System.in);
