@@ -37,4 +37,4 @@ public class Ex06 {
 
         service.processOrder(15000000, discount, payment, notify);
     }
-}   
+}
