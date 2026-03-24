@@ -1,0 +1,11 @@
+Input: Không có (Lấy toàn bộ bệnh nhân cấp cứu). Output: Danh sách các BenhNhanDTO (chứa tên và list dịch vụ).
+
+Đề xuất 2 giải pháp:
+    - Giải pháp 1 (N+1 Query - Mã cũ): 1 câu SELECT lấy 500 bệnh nhân. Chạy vòng lặp 500 lần, mỗi lần bắn 1 câu SELECT lấy dịch vụ.
+    - Giải pháp 2 (Dùng LEFT JOIN): Dùng 1 câu SELECT * FROM BenhNhan b LEFT JOIN DichVuSuDung d ON b.maBenhNhan = d.maBenhNhan. Lấy dữ liệu lên RAM và dùng Java LinkedHashMap để gộp lại.
+
+So sánh:
+    - Network I/O: GP1 bắn 501 queries (Cực tệ). GP2 bắn đúng 1 query (Cực tốt).
+    - Xử lý RAM: GP1 nhàn cho Java. GP2 cần viết logic Hash/Map phức tạp hơn một chút trên Java.
+
+Chốt: Chọn Giải pháp 2 (LEFT JOIN) để giải quyết dứt điểm 15 giây chờ đợi của Y tá. Dùng LEFT JOIN để bắt dính Bẫy 2 (những người chưa có dịch vụ vẫn được liệt kê).

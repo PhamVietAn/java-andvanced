@@ -1,0 +1,7 @@
+- Giữ Lock (Khóa) dữ liệu: Khi conn.setAutoCommit(false) được kích hoạt và Thao tác 1 (trừ tiền trong ví) chạy qua, cơ sở dữ liệu sẽ tạm thời "khóa" (lock) dòng dữ liệu ví của bệnh nhân đó lại để chờ quyết định cuối cùng.
+
+- Treo giao dịch lơ lửng: Khi Thao tác 2 ném ra SQLException, luồng chương trình nhảy thẳng vào khối catch. Việc bạn chỉ dùng System.out.println() không hề gửi bất kỳ lệnh nào xuống database.
+
+- Hậu quả: Cơ sở dữ liệu không biết giao dịch này đã thất bại nên vẫn giữ trạng thái "chờ", đồng thời tiếp tục khóa dòng dữ liệu ví. Điều này làm "treo" kết nối (connection leak), gây lãng phí tài nguyên và làm các chức năng khác muốn đụng vào ví của bệnh nhân này bị kẹt cứng.
+
+Hành động thiết yếu bị bỏ quên: Lập trình viên bắt buộc phải gọi lệnh conn.rollback() để báo cho database biết: "Giao dịch lỗi rồi, hãy hủy bỏ bản nháp, trả lại tiền và mở khóa dữ liệu đi!".

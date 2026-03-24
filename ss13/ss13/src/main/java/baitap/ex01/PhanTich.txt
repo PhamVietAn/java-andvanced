@@ -1,0 +1,5 @@
+Nguyên nhân lỗi
+- Do chế độ mặc định của Java là "Chạy đến đâu, lưu chết vào Database đến đó" (gọi là Auto-Commit).
+- Khi lệnh 1 (trừ thuốc) chạy xong, nó được hệ thống lưu vĩnh viễn ngay lập tức.
+- Ngay sau đó gặp lỗi mạng/logic (chia cho 0), chương trình bị văng lỗi, nên lệnh 2 (ghi lịch sử) không bao giờ được chạy.
+-> Kết quả: Thuốc đã mất, nhưng không ai ghi sổ.

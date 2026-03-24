@@ -1,0 +1,25 @@
+Phân tích bài toán (I/O)
+Input (Đầu vào): Hàm nhận vào 2 tham số:
+    - maBenhNhan (int): Định danh duy nhất của bệnh nhân cần làm thủ tục.
+    - tienVienPhi (double): Số tiền cần thanh toán cho đợt điều trị.
+
+Output (Đầu ra): * Hàm trả về kiểu void (hoặc boolean tùy thiết kế), thông báo kết quả qua Console.
+    - Thành công: In ra thông báo xuất viện hoàn tất, Database cập nhật đủ 3 bảng/trường thông tin.
+    - Thất bại: In ra nguyên nhân lỗi (Thiếu tiền, Sai mã bệnh nhân, Lỗi mạng...), Database không có bất kỳ thay đổi nào.
+
+Đề xuất giải pháp
+Để giải quyết bài toán và vượt qua 2 bẫy dữ liệu, chúng ta sẽ áp dụng cơ chế Try-Catch-Rollback kết hợp với kiểm tra logic chủ động:
+    - Tắt Auto-Commit: Gom toàn bộ luồng kiểm tra và cập nhật vào một khối giao dịch duy nhất (conn.setAutoCommit(false)).
+    - Vượt Bẫy 1 (Thiếu tiền): Thực hiện một câu lệnh SELECT để kiểm tra số dư tạm ứng trước khi thực hiện bất kỳ lệnh UPDATE nào. Nếu số dư nhỏ hơn viện phí, chủ động ném ra một Exception để ép chương trình nhảy vào khối catch và thực thi rollback().
+    - Vượt Bẫy 2 (Dữ liệu ảo): Lợi dụng giá trị trả về (int affectedRows) của hàm executeUpdate(). Nếu giá trị này bằng 0, chứng tỏ câu lệnh SQL chạy hợp lệ nhưng không tìm thấy dòng dữ liệu nào khớp với điều kiện WHERE. Lúc này, ta cũng chủ động ném ra Exception để hủy giao dịch.
+
+Thiết kế các bước tuần tự
+    1. Mở kết nối và đặt setAutoCommit(false).
+    2. Truy vấn thông tin bệnh nhân: Lấy số dư tạm ứng và mã giường bệnh hiện tại. Nếu không tìm thấy bệnh nhân, ném lỗi (Xử lý Bẫy 2).
+    3. Kiểm tra số dư: So sánh số dư với viện phí. Nếu không đủ, ném lỗi (Xử lý Bẫy 1).
+    4. Thực thi Thao tác 1: Cập nhật trừ tiền tạm ứng.
+    5. Thực thi Thao tác 2: Cập nhật trạng thái giường thành 'Trống'. Kiểm tra affectedRows == 0 để ném lỗi nếu cần (Xử lý Bẫy 2).
+    6. Thực thi Thao tác 3: Cập nhật trạng thái bệnh nhân thành 'Đã xuất viện'. Kiểm tra affectedRows == 0.
+    7. Xác nhận (Commit): Nếu vượt qua tất cả các bước trên, gọi conn.commit().
+    8. Xử lý lỗi (Catch): Gọi conn.rollback() để hoàn tác và in thông báo lỗi.
+    9. Dọn dẹp (Finally): Đóng các PreparedStatement, bật lại AutoCommit và đóng

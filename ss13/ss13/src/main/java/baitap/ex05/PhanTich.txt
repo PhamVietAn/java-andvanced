@@ -1,0 +1,30 @@
+Phân tích:
+Lỗi Type Mismatch: Người dùng nhập chữ "Năm trăm" vào ô nhập tiền hoặc tuổi. Nếu không bẫy bằng try-catch khi Double.parseDouble(), ứng dụng Console sẽ văng lỗi và sập ngay lập tức.
+Lỗi Logic Dữ liệu: Nhập mã giường không tồn tại hoặc giường đã có người nằm. Nếu không kiểm tra (Row Affected == 0), hệ thống vẫn thu tiền nhưng bệnh nhân không có giường.
+Sự cố đường truyền: Đang chạy lệnh INSERT bệnh nhân thành công nhưng rớt mạng trước khi cập nhật giường. Bắt buộc dùng Transaction (Rollback) để đảm bảo không sinh ra dữ liệu rác.
+
+Flow chart
+    Bước 1: Hệ thống tiếp nhận Input từ giao diện (Tên, Tuổi, Mã giường, Tiền tạm ứng).
+    Bước 2: Mở kết nối Database và tắt chế độ tự động lưu conn.setAutoCommit(false).
+    Bước 3 (Thao tác 1): Thực hiện lệnh INSERT thông tin vào bảng RHMS_Patients. Sử dụng getGeneratedKeys() để lấy lại mã bệnh nhân (patient_id) vừa được hệ thống tự động sinh ra.
+    Bước 4 (Thao tác 2): Thực hiện lệnh UPDATE bảng RHMS_Beds để chuyển trạng thái giường thành 'Đã có người'. Bẫy logic: Đi kèm điều kiện WHERE bed_code = ? AND status = 'Trống'. Nếu hàm trả về RowAffected == 0 (nghĩa là giường không tồn tại hoặc đã có người nằm), lập tức ném ra Exception và chuyển sang Bước 7.
+    Bước 5 (Thao tác 3): Thực hiện lệnh INSERT vào bảng RHMS_Finance để ghi nhận số tiền tạm ứng, sử dụng patient_id lấy được ở Bước 3.
+    Bước 6 (Thành công): Nếu cả 3 bước trên đều trót lọt, gọi lệnh conn.commit() để chốt lưu dữ liệu vĩnh viễn vào Database và thông báo cho người dùng.
+    Bước 7 (Thất bại - Rollback): Nếu có bất kỳ lỗi nào xảy ra ở Bước 3, 4, 5 (hoặc do rớt mạng), hệ thống nhảy vào khối catch, lập tức gọi conn.rollback() để xóa sạch các thao tác dở dang, bảo toàn tính nhất quán của dữ liệu. Đóng kết nối.
+
+Data Structure:
+Bảng 1: RHMS_Patients (Hồ sơ bệnh nhân)
+
+id (INT): Khóa chính, tự động tăng (AUTO_INCREMENT). Lưu mã số định danh duy nhất của bệnh nhân.
+name (VARCHAR): Tên bệnh nhân.
+age (INT): Tuổi của bệnh nhân.
+
+Bảng 2: RHMS_Beds (Quản lý giường bệnh)
+
+bed_code (VARCHAR): Khóa chính. Lưu mã giường (Ví dụ: B01, B02).
+status (VARCHAR): Trạng thái hiện tại của giường (Chỉ nhận 2 giá trị: 'Trống' hoặc 'Đã có người').
+
+Bảng 3: RHMS_Finance (Quản lý tài chính tạm ứng)
+
+patient_id (INT): Mã bệnh nhân, đóng vai trò kết nối với bảng RHMS_Patients để biết tiền này của ai.
+advance_payment (DOUBLE): Số tiền bệnh nhân đã nộp tạm ứng khi nhập viện.
